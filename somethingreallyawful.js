@@ -26,68 +26,52 @@ var somethingReallyAwful = function() {
 
 	/**
 	 * [Forum object]
-	 * @param {[type]} id          [description]
-	 * @param {[type]} name        [description]
-	 * @param {[type]} description [description]
-	 * @param {[type]} moderators  [description]
+	 * @param {[type]} id          [forum id]
+	 * @param {[type]} name        [forum name]
+	 * @param {[type]} description [forum description]
+	 * @param {[type]} moderators  [string array of moderator names]
 	 */
 	var Forum = function (id, name, description, moderators) {
-		this.id         = id;
-		this.name       = name;
+		this.id          = id;
+		this.name        = name;
 		this.description = description;
-		this.moderators = moderators;
+		this.moderators  = moderators;
 	};
 
-	this.getForums = function(callback) {
-		var forums = [];
-		var iconRegex = /\d\d\d/;
-		var temp;
-		$.ajax({
-			url: "http://forums.somethingawful.com/index.php",
-			type: "GET",
-			success: function (pageData) {
-				console.log(pageData);
-				var threadEls = $(pageData).children('#forums').children('tbody').children('tr');
-				threadEls.each(function(threadTr) {
-					threadTr = $(threadEls[threadTr])[0];
-					forums.push(
-						new Forum(
-							threadEls[1].children[0].children[0].href.split('forumid=')[1], // id
-							threadEls[1].children[1].children[0].text, // name
-							threadEls[1].children[1].children[0].title, // description
-							 // moderators
-						)
-					);
-				});
-
-				callback(forums);
-			},
-			error: function(xhr, status, error) {
-				var err = eval("(" + xhr.responseText + ")");
-				alert(err.Message);
-			}
-		});
-	}
+	/**
+	 * [Post description]
+	 * @param {[type]} id       [description]
+	 * @param {[type]} postTime [description]
+	 * @param {[type]} author   [description]
+	 * @param {[type]} authorId [description]
+	 * @param {[type]} postText [description]
+	 */
+	var Post = function (id, postTime, author, authorId, postText) {
+		this.id       = id;
+		this.postTime = postTime;
+		this.author   = author;
+		this.authorId = authorId;
+		this.postText = postText;
+	};
 
 	/**
 	 * [getThreads gets threads by id and sends them to callback function]
 	 * @param  {[type]}   forumId  [forum id]
 	 * @param  {Function} callback [function that you want to use to interact with the thread data. thread data is an array of thread objects]
 	 */
-	this.getThreads = function (forumId, callback) {
+	this.getThreads = function (forumId, callback, page) {
 		var threads = [];
 		var iconRegex = /\d\d\d/;
-		var temp;
+		var url = "http://forums.somethingawful.com/forumdisplay.php?forumid=" + forumId + ((typeof(page) !== "undefined") ? "&pagenumber=" + page : "");
 		$.ajax({
-			url: "http://forums.somethingawful.com/forumdisplay.php?forumid=" + forumId,
+			url: url,
 			type: "GET",
 			success: function (pageData) {
-				console.log(pageData);
-				var threadEls = $(pageData).children('#forum').children('tbody').children('tr');
+				var threadEls = $(pageData).find('#forum').children('tbody').children('tr');
 				threadEls.each(function(threadTr) {
 					threadTr = $(threadEls[threadTr])[0];
 					threads.push(
-						new Thread(
+						new Thread (
 							$($(threadTr).children()[2]).children('div').children('div').children('a').attr('href').split('=')[1], // id
 							$($(threadTr).children()[2]).children('div').children('div').children('a').text(), // name
 							$($($(threadTr).children()[4]).children()[0]).text, // replies
@@ -105,13 +89,124 @@ var somethingReallyAwful = function() {
 				callback(threads);
 			},
 			error: function(xhr, status, error) {
-				var err = eval("(" + xhr.responseText + ")");
-				alert(err.Message);
+				alert(error);
 			}
 		});
 	};
 
-};
+	/**
+	 * [getForums description]
+	 * @param  {Function} callback [description]
+	 * @return {[type]}            [description]
+	 */
+	this.getForums = function (callback) {
+		var forums = [];
+		$.ajax({
+			url: "http://forums.somethingawful.com/index.php",
+			type: "GET",
+			success: function (pageData) {
+				var threadEls = $(pageData).find('#forums').children('tbody').children('tr');
+				threadEls.each(function(threadTr) {
+					threadTr = $(threadEls[threadTr])[0];
+					if (threadTr.className !== "section") { // don't want section rows
+						forums.push(
+							new Forum (
+								threadTr.children[0].children[0].href.split('forumid=')[1], // id
+								threadTr.children[1].children[0].text, // name
+								threadTr.children[1].children[0].title, // description
+								threadTr.children[2].textContent.split(',') // moderators
+							)
+						);
+					}
+				});
 
-var sRA = new somethingReallyAwful;
-var t = sRA.getThreads(219);
+				callback(forums);
+			},
+			error: function (xhr, status, error) {
+				alert(error);
+			}
+		});
+	};
+
+	/**
+	 * [getPosts description]
+	 * @param  {Function} callback [description]
+	 * @return {[type]}            [description]
+	 */
+	this.getPosts = function (threadId, callback, page) {
+		var posts = [];
+		var url = "http://forums.somethingawful.com/showthread.php?threadid=" + threadId + ((typeof(page) !== "undefined") ? "&pagenumber=" + page : "");
+		$.ajax({
+			url: url,
+			type: "GET",
+			success: function (pageData) {
+				var threadEls = $(pageData).find('#thread').children();
+				threadEls.each(function(threadDiv) {
+					threadDiv = $(threadEls[threadDiv])[0];
+
+					posts.push(
+						new Post (
+							$(threadDiv).find('a').last()[0].href.split('postid=')[1], // id
+							$(threadDiv).find('.postdate').text().split('?')[1].trim(), // posttime
+							$(threadDiv).find('.author').text(), // author
+							$(threadDiv).find('.userinfo')[0].attributes.class.textContent.split('userid-')[1], // authorId
+							$(threadDiv).find('.postbody').html() // postText
+						)
+					);
+				});
+
+				callback(posts);
+			},
+			error: function (xhr, status, error) {
+				alert(error);
+			}
+		});
+	};
+
+	/**
+	 * [newPost creates a new post]
+	 * @param  {[type]}   threadId [description]
+	 * @param  {[type]}   postText [description]
+	 * @param  {Function} callback [description]
+	 * @return {[type]}            [description]
+	 */
+	this.newPost = function (threadId, postText, callback) {
+		var makePost = function(data) {
+			var formkey = $(data).find("input[name='formkey']").attr('value');
+			var form_cookie = $(data).find("input[name='form_cookie']").attr('value');
+			$.ajax({
+				url: "http://forums.somethingawful.com/newreply.php",
+				type: "POST",
+				data: {
+					"action" : "postreply",
+					"threadid" : threadId,
+					"formkey" : formkey,
+					"form_cookie" : form_cookie,
+					"message" : postText,
+					"parseurl" : "yes",
+					"bookmark" : "no",
+					"disablesmilies" : "no",
+					"signature" : "no",
+					"MAX_FILE_SIZE" : "2097152",
+					"attachment" : "",
+					"submit" : "Submit Reply"
+				},
+				success: function (pageData) {
+
+				},
+				error: function (xhr, status, error) {
+					alert(error);
+				}
+			});
+		};
+
+		$.ajax({
+			url: "http://forums.somethingawful.com/newreply.php?action=newreply&threadid=" + threadId,
+			type: "GET",
+			success: makePost,
+			error: function (xhr, status, error) {
+				alert(error);
+			}
+		});
+	};
+};
