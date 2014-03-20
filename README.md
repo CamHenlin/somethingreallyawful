@@ -6,3 +6,8 @@ sRA.getForums(function(forums) { console.log(forums.length); });
 sRA.getPosts(3618109, function(posts) { console.log(posts.length); });
 sRA.newPost(3618109, "i do what i want");
 ```
+
+demo of suggested usage at:
+[a relative link](demo.html)
+[a relative link](demo.js)
+note: probably need to be logged in to SA for this to work right

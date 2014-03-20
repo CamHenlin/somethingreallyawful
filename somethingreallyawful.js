@@ -61,7 +61,6 @@ var somethingReallyAwful = function() {
 	 */
 	this.getThreads = function (forumId, callback, page) {
 		var threads = [];
-		var iconRegex = /\d\d\d/;
 		var url = "http://forums.somethingawful.com/forumdisplay.php?forumid=" + forumId + ((typeof(page) !== "undefined") ? "&pagenumber=" + page : "");
 		$.ajax({
 			url: url,
@@ -72,13 +71,13 @@ var somethingReallyAwful = function() {
 					threadTr = $(threadEls[threadTr])[0];
 					threads.push(
 						new Thread (
-							$($(threadTr).children()[2]).children('div').children('div').children('a').attr('href').split('=')[1], // id
-							$($(threadTr).children()[2]).children('div').children('div').children('a').text(), // name
-							$($($(threadTr).children()[4]).children()[0]).text, // replies
-							$($(threadTr).children()[5]).textContent, // views
-							$($(threadTr).children()[3]).children('a').text(), // author
-							$($(threadTr).children()[3]).children('a').attr('href').split('=')[2], // authorid
-							iconRegex.exec($(threadTr).children()[1].innerHTML), // iconid
+							$(threadTr).find('.thread_title').attr('href').split('threadid=')[1], // id
+							$(threadTr).find('.thread_title').text(), // name
+							$(threadTr).find('.replies').text(), // replies
+							$(threadTr).find('.views').text(), // views
+							$(threadTr).find('.author')[0].textContent, // author
+							$(threadTr).find('.author').find('a').attr('href').split('userid=')[1], // authorid
+							$(threadTr).find('.icon').find('a').attr('href').split('posticon=')[1], // iconid
 							$($(threadTr).children()[7]).children()[1].textContent, // killed by
 							(typeof($($(threadTr).children()[6]).children()[0]) !== "undefined") ? $($(threadTr).children()[6]).children()[0].getAttribute('title').split(' votes - ')[1].split(' average')[0] : null, // rating
 							(typeof($($(threadTr).children()[6]).children()[0]) !== "undefined") ? $($(threadTr).children()[6]).children()[0].getAttribute('title').split(' votes -')[0] : null // votes
@@ -192,7 +191,7 @@ var somethingReallyAwful = function() {
 					"submit" : "Submit Reply"
 				},
 				success: function (pageData) {
-
+					callback(pageData);
 				},
 				error: function (xhr, status, error) {
 					alert(error);
