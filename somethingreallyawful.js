@@ -25,9 +25,54 @@ var somethingReallyAwful = function() {
 	};
 
 	/**
-	 * [getThreads description]
-	 * @param  {[type]}   forumId  [description]
-	 * @param  {Function} callback [description]
+	 * [Forum object]
+	 * @param {[type]} id          [description]
+	 * @param {[type]} name        [description]
+	 * @param {[type]} description [description]
+	 * @param {[type]} moderators  [description]
+	 */
+	var Forum = function (id, name, description, moderators) {
+		this.id         = id;
+		this.name       = name;
+		this.description = description;
+		this.moderators = moderators;
+	};
+
+	this.getForums = function(callback) {
+		var forums = [];
+		var iconRegex = /\d\d\d/;
+		var temp;
+		$.ajax({
+			url: "http://forums.somethingawful.com/index.php",
+			type: "GET",
+			success: function (pageData) {
+				console.log(pageData);
+				var threadEls = $(pageData).children('#forums').children('tbody').children('tr');
+				threadEls.each(function(threadTr) {
+					threadTr = $(threadEls[threadTr])[0];
+					forums.push(
+						new Forum(
+							threadEls[1].children[0].children[0].href.split('forumid=')[1], // id
+							threadEls[1].children[1].children[0].text, // name
+							threadEls[1].children[1].children[0].title, // description
+							 // moderators
+						)
+					);
+				});
+
+				callback(forums);
+			},
+			error: function(xhr, status, error) {
+				var err = eval("(" + xhr.responseText + ")");
+				alert(err.Message);
+			}
+		});
+	}
+
+	/**
+	 * [getThreads gets threads by id and sends them to callback function]
+	 * @param  {[type]}   forumId  [forum id]
+	 * @param  {Function} callback [function that you want to use to interact with the thread data. thread data is an array of thread objects]
 	 */
 	this.getThreads = function (forumId, callback) {
 		var threads = [];
