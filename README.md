@@ -11,7 +11,7 @@ demo of suggested usage at:
 [demo html doc](demo.html)   
 [demo js](demo.js)   
 
-links to projects using somethingreallyawful.js: 
-[somethingreallyawful.safariextension](https://github.com/CamHenlin/somethingreallyawful.safariextension)   
-[somethingreallyawful.chromeext](https://github.com/CamHenlin/somethingreallyawful.chromeext)  
-[somethingreallyawful.firefoxext](https://github.com/CamHenlin/somethingreallyawful.firefoxext)  
+links to projects using somethingreallyawful.js:      
+[somethingreallyawful.safariextension](https://github.com/CamHenlin/somethingreallyawful.safariextension)     
+[somethingreallyawful.chromeext](https://github.com/CamHenlin/somethingreallyawful.chromeext)     
+[somethingreallyawful.firefoxext](https://github.com/CamHenlin/somethingreallyawful.firefoxext)     
